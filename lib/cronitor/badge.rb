@@ -26,7 +26,7 @@ module Cronitor
         raise Error.new('No API key detected. Set Cronitor.api_key or pass api_key parameter')
       end
 
-      headers = Monitor::Headers::JSON.dup
+      headers = Monitor::Headers.json
       headers[:'Cronitor-Version'] = api_version if api_version
 
       resp = HTTParty.get(

@@ -37,6 +37,26 @@ RSpec.describe Cronitor do
     end
   end
 
+  describe 'Headers' do
+    it 'includes the current api_version in json headers' do
+      Cronitor.api_version = '2025-11-28'
+      headers = Cronitor::Monitor::Headers.json
+      expect(headers[:'Cronitor-Version']).to eq('2025-11-28')
+    end
+
+    it 'updates when api_version changes after initial configuration' do
+      Cronitor.api_version = 'v1'
+      expect(Cronitor::Monitor::Headers.json[:'Cronitor-Version']).to eq('v1')
+      Cronitor.api_version = 'v2'
+      expect(Cronitor::Monitor::Headers.json[:'Cronitor-Version']).to eq('v2')
+    end
+
+    it 'returns yaml headers with correct content type' do
+      headers = Cronitor::Monitor::Headers.yaml
+      expect(headers[:'Content-Type']).to eq('application/yaml')
+    end
+  end
+
   describe 'YAML configuration' do
     before(:all) do
       Cronitor.configure do |cronitor|
@@ -226,7 +246,7 @@ RSpec.describe Cronitor do
             monitor.send(:ping_api_url),
             hash_including({
               query: hash_including(query),
-              headers: Cronitor::Monitor::Headers::JSON,
+              headers: Cronitor::Monitor::Headers.json,
               timeout: 5,
             })
           ).and_return(instance_double(HTTParty::Response, code: 200))
@@ -251,7 +271,7 @@ RSpec.describe Cronitor do
         expect(HTTParty).to receive(:get).with(
           "https://ping.com/p/#{FAKE_API_KEY}/test-key",
           hash_including({
-            headers: Cronitor::Monitor::Headers::JSON,
+            headers: Cronitor::Monitor::Headers.json,
             timeout: 5,
           })
         ).and_return(instance_double(HTTParty::Response, code: 200))
